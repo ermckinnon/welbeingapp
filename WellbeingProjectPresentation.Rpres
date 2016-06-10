@@ -1,0 +1,98 @@
+Happy Jobs
+========================================================
+author: Ewen McKinnon
+date: `r format(Sys.Date(), format="%B %d %Y")`
+transition: rotate
+
+<small> 
+Project Presentation  
+Developing Data Products Course    
+Coursera Data Science Specialization  
+</small>
+
+Introduction
+========================================================
+
+There has been increased interest in well-being in recent years. 
+Many National Statistics institutions around the world are now measuring
+the well-being of their nation's populations.
+
+In the UK four new **personal well-being** questions have been added to the
+Annual Population Survey since 2011. The large sample size enables differences
+in well-being to be estimated for people working in different types of job.
+
+The What Works Centre for Well-being in the UK has published data on well-being
+by occupation. We have written a small 'shiny' application so that you can explore the data.  
+
+Application Background
+========================================================
+
+The application uses data which is available at this link from the [UK What Works Centre for Well-being] (https://whatworkswellbeing.org/wellbeing-2/wellbeing-data/personal-wellbeing-for-major-and-sub-major-standard-occupation-codes/)  
+
+Users answer two survey questions on their life satisfaction and the extent to which activities in life are 'Worthwhile'. These are answered on a scale from 0 to 10. Further info on these questions can be found from the [Office for National Statistics] (http://www.ons.gov.uk/ons/guide-method/harmonisation/secondary-set-of-harmonised-concepts-and-questions/interim-standard---personal-well-being.pdf).
+
+Users also enter two types of occupation from the international standard list of occupations. The first occupation is the user's current chosen job and the second is an occupation they would like to compare with.
+
+Example Application Output
+========================================================
+The application retreives data from the published well-being dataset based on user inputs.
+```{r download,echo=FALSE }
+#download wellbeing file
+library(xlsx)
+library(RCurl)
+library(curl)
+library(gdata)
+#url = "http://whatworkswellbeing.files.wordpress.com/2016/03/wellbeing-by-standard-occupations_2012-15_final.xlsx"
+#download.file(url, destfile="./wellbeingdata.xlsx",mode='wb',cacheOK = FALSE)
+
+data1 <- read.xlsx("./wellbeingdata.xlsx",sheetName="SOC3_Wellbeing",header=TRUE)
+data2 <- read.xlsx("./wellbeingdata.xlsx",sheetName="SOC3_ASHE",header=TRUE,colIndex=c(1:7))
+data <- merge(data1,data2,by="SOC3")
+data <- data[-c(37,42),]
+data <- data[order(data$Standard.Occupation.Code..SOC....Minor.Group),]
+data$median_GAP <- as.numeric(paste(data$median_GAP))
+input <- data.frame(satisfied = 0, worthwhile = 0,currjob ="NILL",compjob="NILL" )
+input$satisfied <- 8
+input$worthwhile <- 8
+input$currjob <- "Chief Executives and Senior Officials"
+input$compjob <- "Health and Social Services Managers and Directors"
+
+```
+
+
+```{r plot,echo=FALSE,width=12}
+
+plot(as.numeric(data$median_GAP),data$LS_mean,  main="Life Satisfaction and Median Pay by career", 
+     xlab="Median Pay (£)", ylab="Life Satisfaction", pch=19)
+abline(h=input$satisfied, col="red")
+points(data[data$Standard.Occupation.Code..SOC....Minor.Group==input$currjob,26],
+       data[data$Standard.Occupation.Code..SOC....Minor.Group==input$currjob,3],pch=17,cex=2,col="green")
+
+points(data[data$Standard.Occupation.Code..SOC....Minor.Group==input$compjob,26],
+       data[data$Standard.Occupation.Code..SOC....Minor.Group==input$compjob,3],pch=17,cex=2,col="blue")
+
+points(40000,7.4,pch=17,cex=2,col="green")
+points(40000,7.36,pch=17,cex=2,col="blue")
+
+
+text(41500,7.44,paste("Current Life Satisfaction = ",input$satisfied),pos=4)
+text(41500,7.40,input$currjob,pos=4)
+text(41500,7.36,input$compjob,pos=4)
+text(66000,input$satisfied,"Your Current Life Satisfaction",pos=1)
+
+```
+
+Where to find the App
+========================================================
+
+The App is available at:
+
+- https://ermckinnon.shinyapps.io/WellbeingProject/
+
+The code for the app is available at:
+
+- https://github.com/ermckinnon/welbeingapp
+
+The code for this presentation is available at:
+
+- https://github.com/ermckinnon/welbeingapp
